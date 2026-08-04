@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/"
+title = "話術透視鏡"
+description = "A web tool that lets users paste ad copy or upload screenshots. AI analyzes the text to identify psychological manipulation tactics in health product ads (fear appeals, false scarcity, social proof manipulation, authority borrowing, emotional coercion, exaggerated efficacy), shows color-coded annotations on the original text, a credibility gauge score, and a neutral rewrite version. Saves all analyses to a database for later review."
+version = "1.0.0"
+id = "artifacts/rhetoric-xray"
+router = "path"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 21905
+
+[services.development]
+run = "pnpm --filter @workspace/rhetoric-xray run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/rhetoric-xray", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/rhetoric-xray/dist/public"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "21905"
+BASE_PATH = "/"
