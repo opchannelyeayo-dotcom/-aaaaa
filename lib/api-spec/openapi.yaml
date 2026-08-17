@@ -3,13 +3,27 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: 話術透視鏡 API — Ad Rhetoric X-Ray
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: rhetoric
+    description: Rhetoric analysis operations
+  - name: records
+    description: Analysis records operations
+  - name: products
+    description: Reference product lookup operations
+  - name: nutrients
+    description: Nutrient reference-intake guideline operations
+  - name: health-food-stats
+    description: Health-food aggregate statistics operations
+  - name: nutrient-terms
+    description: Nutrient terminology glossary operations
+  - name: life-stage-nutrients
+    description: Adult/pregnancy/lactation nutrient intake table operations
 paths:
   /healthz:
     get:
@@ -24,6 +38,203 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /ocr:
+    post:
+      operationId: processOcr
+      tags: [rhetoric]
+      summary: Extract text from image via OCR
+      description: Accepts a base64-encoded image and returns the recognized text
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OcrInput"
+      responses:
+        "200":
+          description: OCR result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OcrResult"
+        "400":
+          description: Bad request
+
+  /analyze:
+    post:
+      operationId: analyzeRhetoric
+      tags: [rhetoric]
+      summary: Analyze ad copy for rhetoric manipulation
+      description: Sends text to LLM for rhetoric analysis and saves result to DB
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RhetoricInput"
+      responses:
+        "200":
+          description: Analysis result with annotations, credibility score, and neutral rewrite
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnalysisResult"
+        "400":
+          description: Bad request
+
+  /records:
+    get:
+      operationId: listRecords
+      tags: [records]
+      summary: List all analysis records
+      description: Returns a list of past analysis records sorted by newest first
+      responses:
+        "200":
+          description: List of records
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RecordSummary"
+
+  /records/stats:
+    get:
+      operationId: getRecordStats
+      tags: [records]
+      summary: Get aggregated stats across all records
+      description: Returns total count, average credibility score, and per-category breakdown
+      responses:
+        "200":
+          description: Aggregate stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RecordStats"
+
+  /records/{id}:
+    get:
+      operationId: getRecord
+      tags: [records]
+      summary: Get a single analysis record by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        "200":
+          description: Full analysis record
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnalysisRecord"
+        "404":
+          description: Record not found
+
+  /products:
+    get:
+      operationId: searchProducts
+      tags: [products]
+      summary: Search reference products
+      description: Public read-only search over the reference product database (the same records managed in 後台管理／藥品資料庫) by name, manufacturer, or registration number
+      parameters:
+        - name: q
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Search term matched against name, manufacturer, and registration number
+      responses:
+        "200":
+          description: List of matching products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PublicProduct"
+
+  /nutrients:
+    get:
+      operationId: listNutrientGuidelines
+      tags: [nutrients]
+      summary: List nutrient reference-intake guidelines
+      description: 衛福部國健署《國人膳食營養素參考攝取量》— per life-stage/subgroup recommended intake, optionally filtered to one nutrient
+      parameters:
+        - name: nutrient
+          in: query
+          required: false
+          schema:
+            type: string
+          description: "Filter to one nutrient, e.g. 蛋白質 / 鈉 / 鉀 / 鎂 / 鐵. Omit to return all."
+      responses:
+        "200":
+          description: List of guideline rows
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/NutrientGuideline"
+
+  /health-food-stats:
+    get:
+      operationId: listHealthFoodStats
+      tags: [health-food-stats]
+      summary: List health-food aggregate statistics
+      description: Precomputed counts from the 衛福部 approved health-food dataset, by efficacy-claim combination or by manufacturer
+      parameters:
+        - name: type
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [efficacy, manufacturer]
+      responses:
+        "200":
+          description: List of stat rows, sorted by count descending
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/HealthFoodStat"
+
+  /nutrient-terms:
+    get:
+      operationId: listNutrientTerms
+      tags: [nutrient-terms]
+      summary: List nutrient terminology glossary entries
+      description: 衛福部國健署《國人膳食營養素參考攝取量》名詞說明（EAR/RDA/AI/UL/AMDR/CDRR 等）
+      responses:
+        "200":
+          description: List of glossary rows
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/NutrientTerm"
+
+  /life-stage-nutrients:
+    get:
+      operationId: listLifeStageNutrients
+      tags: [life-stage-nutrients]
+      summary: List the adult/pregnancy/lactation nutrient intake table
+      description: 保健食品_成人與孕哺期精華表 — 生命期年齡層 × 性別 × 營養素建議攝取量
+      responses:
+        "200":
+          description: List of intake rows
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/LifeStageNutrient"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +245,461 @@ components:
       required:
         - status
 
+    OcrInput:
+      type: object
+      required: [imageBase64, mimeType]
+      properties:
+        imageBase64:
+          type: string
+          description: Base64-encoded image data
+        mimeType:
+          type: string
+          description: MIME type of the image (e.g. image/png, image/jpeg)
+
+    OcrResult:
+      type: object
+      required: [ocrText]
+      properties:
+        ocrText:
+          type: string
+          description: Text extracted from the image
+
+    RhetoricAnnotation:
+      type: object
+      required: [textSpan, category, explanation]
+      properties:
+        textSpan:
+          type: string
+          description: The original text fragment that was annotated
+        category:
+          type: string
+          enum:
+            - 恐懼訴求
+            - 假稀缺
+            - 社會認同操控
+            - 權威借位
+            - 情緒勒索
+            - 誇大療效
+          description: Rhetoric category
+        explanation:
+          type: string
+          description: Plain-language explanation of what this phrase is doing to the reader
+
+    RhetoricInput:
+      type: object
+      required: [inputType, textContent, role]
+      properties:
+        inputType:
+          type: string
+          enum: [text, image]
+          description: Whether the source was typed text or OCR from image
+        textContent:
+          type: string
+          description: The ad copy text to analyze
+        role:
+          type: string
+          enum: [seller, consumer]
+          description: >-
+            Analysis perspective — seller (賣家：推銷／成交／說服力導向) or
+            consumer (消費者：信任／理解／風險導向). Drives an entirely
+            different judgment prompt, not just a display label.
+
+    MatchedProduct:
+      type: object
+      required: [id, name, category, registrationNumber, approvedUses]
+      properties:
+        id:
+          type: number
+          description: Reference product ID (see /admin/products)
+        name:
+          type: string
+        category:
+          type: string
+        registrationNumber:
+          type:
+            - string
+            - "null"
+          description: 核准字號
+        approvedUses:
+          type: string
+          description: 核准適應症／功能，用來比對廣告文案是否誇大不實
+
+    RiskLevel:
+      type: string
+      enum: [低, 中, 高]
+      description: Overall risk level of the role-specific judgment
+
+    AnalysisResult:
+      type: object
+      required: [recordId, originalText, annotations, credibilityScore, neutralRewrite, matchedProducts, role, verdict, coreJudgment, mainStrengths, mainRisks, improvementSuggestions, riskLevel]
+      properties:
+        recordId:
+          type: number
+          description: The database record ID for this analysis
+        originalText:
+          type: string
+          description: The original ad copy text
+        annotations:
+          type: array
+          items:
+            $ref: "#/components/schemas/RhetoricAnnotation"
+        credibilityScore:
+          type: number
+          description: Overall credibility score from 0 (very manipulative) to 100 (trustworthy)
+        neutralRewrite:
+          type: string
+          description: A neutral, objective rewrite of the ad copy without manipulative language
+        matchedProducts:
+          type: array
+          items:
+            $ref: "#/components/schemas/MatchedProduct"
+          description: Reference products whose name was found in the analyzed text
+        role:
+          type: string
+          enum: [seller, consumer]
+          description: Which perspective this analysis judged the content from（角色）
+        verdict:
+          type: string
+          description: Short one-line verdict for the role's judgment（判定）
+        coreJudgment:
+          type: string
+          description: The core reasoning behind the verdict（核心判斷）
+        mainStrengths:
+          type: array
+          items:
+            type: string
+          description: Main strengths from the role's perspective（主要優點）
+        mainRisks:
+          type: array
+          items:
+            type: string
+          description: Main risks from the role's perspective（主要風險）
+        improvementSuggestions:
+          type: array
+          items:
+            type: string
+          description: Actionable improvement suggestions（改進建議）
+        riskLevel:
+          $ref: "#/components/schemas/RiskLevel"
+
+    RecordSummary:
+      type: object
+      required: [id, createdAt, inputType, credibilityScore, originalText, annotationCount, role, riskLevel]
+      properties:
+        id:
+          type: number
+        createdAt:
+          type: string
+          description: ISO 8601 timestamp
+        inputType:
+          type: string
+          enum: [text, image]
+        credibilityScore:
+          type: number
+        originalText:
+          type: string
+          description: Truncated original text for preview
+        annotationCount:
+          type: number
+          description: Number of rhetoric annotations found
+        role:
+          type: string
+          enum: [seller, consumer]
+          description: Which perspective this analysis judged the content from（角色）
+        riskLevel:
+          $ref: "#/components/schemas/RiskLevel"
+
+    AnalysisRecord:
+      type: object
+      required: [id, createdAt, inputType, originalText, annotations, credibilityScore, neutralRewrite, matchedProducts, role, verdict, coreJudgment, mainStrengths, mainRisks, improvementSuggestions, riskLevel]
+      properties:
+        id:
+          type: number
+        createdAt:
+          type: string
+          description: ISO 8601 timestamp
+        inputType:
+          type: string
+          enum: [text, image]
+        originalText:
+          type: string
+        annotations:
+          type: array
+          items:
+            $ref: "#/components/schemas/RhetoricAnnotation"
+        credibilityScore:
+          type: number
+        neutralRewrite:
+          type: string
+        matchedProducts:
+          type: array
+          items:
+            $ref: "#/components/schemas/MatchedProduct"
+          description: Reference products whose name was found in the analyzed text
+        role:
+          type: string
+          enum: [seller, consumer]
+          description: Which perspective this analysis judged the content from（角色）
+        verdict:
+          type: string
+          description: Short one-line verdict for the role's judgment（判定）
+        coreJudgment:
+          type: string
+          description: The core reasoning behind the verdict（核心判斷）
+        mainStrengths:
+          type: array
+          items:
+            type: string
+          description: Main strengths from the role's perspective（主要優點）
+        mainRisks:
+          type: array
+          items:
+            type: string
+          description: Main risks from the role's perspective（主要風險）
+        improvementSuggestions:
+          type: array
+          items:
+            type: string
+          description: Actionable improvement suggestions（改進建議）
+        riskLevel:
+          $ref: "#/components/schemas/RiskLevel"
+
+    PublicProduct:
+      type: object
+      required: [id, name, category, manufacturer, registrationNumber, approvedUses, ingredients, sourceUrl, drugCode, formulaName, dosageForm, issuedDate, sourceId, applicant, certificateStatus, efficacyIngredients, efficacyClaim, warningText, warningTextSimplified, precautions]
+      properties:
+        id:
+          type: number
+        name:
+          type: string
+        category:
+          type: string
+          description: "drug | health_food | other"
+        manufacturer:
+          type:
+            - string
+            - "null"
+        registrationNumber:
+          type:
+            - string
+            - "null"
+          description: 核准字號／許可證字號
+        approvedUses:
+          type: string
+          description: 核准適應症／功能
+        ingredients:
+          type:
+            - string
+            - "null"
+        sourceUrl:
+          type:
+            - string
+            - "null"
+        drugCode:
+          type:
+            - string
+            - "null"
+        formulaName:
+          type:
+            - string
+            - "null"
+        dosageForm:
+          type:
+            - string
+            - "null"
+          description: 劑型
+        issuedDate:
+          type:
+            - string
+            - "null"
+        sourceId:
+          type:
+            - string
+            - "null"
+          description: 原始資料集的 ID（例如 TFDA 開放資料的流水號）
+        applicant:
+          type:
+            - string
+            - "null"
+          description: 申請商
+        certificateStatus:
+          type:
+            - string
+            - "null"
+          description: 證況
+        efficacyIngredients:
+          type:
+            - string
+            - "null"
+          description: 保健功效相關成分
+        efficacyClaim:
+          type:
+            - string
+            - "null"
+          description: 保健功效宣稱（廠商宣傳文案，可與 approvedUses 核准功能比對是否誇大）
+        warningText:
+          type:
+            - string
+            - "null"
+          description: 警語
+        warningTextSimplified:
+          type:
+            - string
+            - "null"
+          description: 警語簡化
+        precautions:
+          type:
+            - string
+            - "null"
+          description: 注意事項
+
+    NutrientGuideline:
+      type: object
+      required: [id, nutrient, category, lifeStage, notes, reliability, source, searchText, details]
+      properties:
+        id:
+          type: number
+        nutrient:
+          type: string
+          description: "蛋白質 / 鈉 / 鉀 / 鎂 / 鐵"
+        category:
+          type: string
+          description: 資料分類（原始 CSV 第一欄）
+        lifeStage:
+          type:
+            - string
+            - "null"
+          description: 生命期年齡層
+        notes:
+          type:
+            - string
+            - "null"
+        reliability:
+          type:
+            - string
+            - "null"
+          description: 資料可信度
+        source:
+          type:
+            - string
+            - "null"
+          description: 資料來源
+        searchText:
+          type: string
+        details:
+          type: object
+          additionalProperties:
+            type: string
+          description: 隨營養素而異的其餘原始欄位（原始中文欄名 → 值），例如性別、建議攝取量類別、約當食鹽克數等
+
+    HealthFoodStat:
+      type: object
+      required: [id, statType, label, count]
+      properties:
+        id:
+          type: number
+        statType:
+          type: string
+          enum: [efficacy, manufacturer]
+        label:
+          type: string
+        count:
+          type: number
+
+    NutrientTerm:
+      type: object
+      required: [id, category, abbreviation, chineseName, englishName, definition, notes, reliability, source, searchText]
+      properties:
+        id:
+          type: number
+        category:
+          type: string
+        abbreviation:
+          type:
+            - string
+            - "null"
+          description: 縮寫，例如 EAR / RDA / AI / UL / AMDR / CDRR
+        chineseName:
+          type: string
+        englishName:
+          type:
+            - string
+            - "null"
+        definition:
+          type: string
+        notes:
+          type:
+            - string
+            - "null"
+        reliability:
+          type:
+            - string
+            - "null"
+        source:
+          type:
+            - string
+            - "null"
+        searchText:
+          type: string
+
+    LifeStageNutrient:
+      type: object
+      required: [id, category, lifeStage, gender, nutrient, intakeType, amount, unit, notes, reliability, source, searchText]
+      properties:
+        id:
+          type: number
+        category:
+          type: string
+        lifeStage:
+          type: string
+          description: 生命期年齡層（含孕期／哺乳期）
+        gender:
+          type: string
+        nutrient:
+          type: string
+        intakeType:
+          type:
+            - string
+            - "null"
+          description: EAR / RDA / AI / NE 等，部分列空白
+        amount:
+          type: string
+          description: 建議攝取量數值（保留原始文字，部分數值帶星號標註）
+        unit:
+          type: string
+        notes:
+          type:
+            - string
+            - "null"
+        reliability:
+          type:
+            - string
+            - "null"
+        source:
+          type:
+            - string
+            - "null"
+        searchText:
+          type: string
+
+    CategoryCount:
+      type: object
+      required: [category, count]
+      properties:
+        category:
+          type: string
+        count:
+          type: number
+
+    RecordStats:
+      type: object
+      required: [totalRecords, avgCredibilityScore, categoryBreakdown]
+      properties:
+        totalRecords:
+          type: number
+        avgCredibilityScore:
+          type: number
+        categoryBreakdown:
+          type: array
+          items:
+            $ref: "#/components/schemas/CategoryCount"

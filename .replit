@@ -3,6 +3,12 @@ modules = ["nodejs-24"]
 [deployment]
 router = "application"
 deploymentTarget = "autoscale"
+build = "pnpm run build"
+run = "pnpm start"
+
+[[ports]]
+localPort = 8080
+externalPort = 80
 
 [deployment.postBuild]
 args = ["pnpm", "store", "prune"]

@@ -1,0 +1,28 @@
+kind = "web"
+previewPath = "/admin"
+title = "後台管理"
+description = "話術透視鏡分析紀錄的內部管理後台：登入後可搜尋/篩選/查看/刪除分析紀錄，並提供統計儀表板與 CSV 匯出。以帳號密碼保護，不對外公開連結。"
+version = "1.0.0"
+id = "artifacts/admin-console"
+router = "path"
+
+[[services]]
+name = "admin-console"
+paths = [ "/admin" ]
+localPort = 21906
+
+[services.development]
+run = "pnpm --filter @workspace/admin-console run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/admin-console", "run", "build" ]
+serve = "static"
+publicDir = "artifacts/admin-console/dist/public"
+
+[[services.production.rewrites]]
+from = "/admin/*"
+to = "/admin/index.html"
+
+[services.env]
+PORT = "21906"
+BASE_PATH = "/admin/"

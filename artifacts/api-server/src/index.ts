@@ -1,13 +1,19 @@
-import app from "./app";
-import { logger } from "./lib/logger";
+import { loadLocalEnv } from "./lib/load-local-env";
 
-const rawPort = process.env["PORT"];
+// Must happen before ./app (and everything it imports, e.g. @workspace/db,
+// the OpenAI client) is evaluated, since those read process.env at module
+// load time. Dynamic import() defers evaluation to this point in the
+// script, unlike a static import which would be hoisted above this call.
+loadLocalEnv();
 
-if (!rawPort) {
-  throw new Error(
-    "PORT environment variable is required but was not provided.",
-  );
-}
+const { default: app } = await import("./app");
+const { logger } = await import("./lib/logger");
+
+// Matches the `localPort` Replit assigns this service in
+// artifacts/api-server/.replit-artifact/artifact.toml. On Replit, PORT is
+// always injected so this fallback never applies there; locally it lets
+// `pnpm dev` work with zero config.
+const rawPort = process.env["PORT"] ?? "8080";
 
 const port = Number(rawPort);
 

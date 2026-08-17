@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<title>話術透視鏡（獨立版）</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: hsl(40 20% 98%);
+    --fg: hsl(220 30% 15%);
+    --border: hsl(220 20% 88%);
+    --card: hsl(0 0% 100%);
+    --primary: hsl(230 40% 30%);
+    --primary-fg: hsl(0 0% 100%);
+    --muted: hsl(220 15% 95%);
+    --muted-fg: hsl(220 15% 45%);
+    --destructive: hsl(0 84% 60%);
+    --emerald: hsl(160 84% 33%);
+    --amber: hsl(38 92% 50%);
+    --radius: 10px;
+
+    --cat-fear: hsl(0 84% 60%);
+    --cat-scarcity: hsl(38 92% 50%);
+    --cat-social: hsl(221 83% 53%);
+    --cat-authority: hsl(271 81% 56%);
+    --cat-emotion: hsl(330 81% 60%);
+    --cat-efficacy: hsl(171 77% 44%);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: "Noto Sans TC", "Microsoft JhengHei", "PingFang TC", sans-serif;
+    line-height: 1.6;
+  }
+  h1, h2, h3 { font-family: "Noto Serif TC", "PingFang TC", serif; margin: 0; }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 24px 16px 64px; }
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 4px; margin-bottom: 24px; border-bottom: 1px solid var(--border);
+  }
+  .brand { font-size: 20px; font-weight: 700; cursor: pointer; }
+  .brand small { display: block; font-size: 11px; font-weight: 400; color: var(--muted-fg); font-family: "Noto Sans TC", sans-serif; }
+  .nav-links { display: flex; gap: 8px; }
+  .nav-btn {
+    background: none; border: 1px solid var(--border); color: var(--fg);
+    padding: 8px 14px; border-radius: var(--radius); cursor: pointer; font-size: 14px;
+  }
+  .nav-btn.active { background: var(--primary); color: var(--primary-fg); border-color: var(--primary); }
+  .icon-btn {
+    background: none; border: 1px solid var(--border); color: var(--fg);
+    width: 36px; height: 36px; border-radius: 50%; cursor: pointer; font-size: 16px;
+    display: flex; align-items: center; justify-content: center; position: relative;
+  }
+  .icon-btn .dot {
+    position: absolute; top: -2px; right: -2px; width: 9px; height: 9px; border-radius: 50%;
+    background: var(--destructive); border: 2px solid var(--bg);
+  }
+  .icon-btn .dot.ok { background: var(--emerald); }
+
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(20,20,30,0.45);
+    display: flex; align-items: center; justify-content: center; padding: 20px; z-index: 50;
+  }
+  .modal-box { background: var(--card); border-radius: 16px; max-width: 480px; width: 100%; padding: 24px; box-shadow: 0 12px 40px rgba(0,0,0,0.2); }
+  .modal-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .modal-close { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--muted-fg); line-height: 1; }
+
+  .hero { text-align: center; margin-bottom: 32px; }
+  .hero h1 { font-size: 32px; font-weight: 700; }
+  .hero p { color: var(--muted-fg); max-width: 560px; margin: 12px auto 0; }
+
+  .card {
+    background: var(--card); border: 2px solid var(--border); border-radius: 16px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06); overflow: hidden;
+  }
+  .card + .card { margin-top: 20px; }
+  .card-pad { padding: 24px; }
+
+  .tabs { display: flex; border-bottom: 1px solid var(--border); background: rgba(0,0,0,0.015); }
+  .tab-btn {
+    flex: 1; padding: 14px; border: none; background: none; cursor: pointer;
+    font-size: 14px; font-weight: 500; color: var(--muted-fg); border-bottom: 2px solid transparent;
+  }
+  .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); background: var(--card); }
+
+  textarea {
+    width: 100%; min-height: 220px; resize: vertical; padding: 14px; font-size: 15px;
+    border: 1px solid var(--border); border-radius: var(--radius); font-family: inherit;
+    background: var(--card); color: var(--fg);
+  }
+  textarea:focus { outline: 2px solid var(--primary); outline-offset: 1px; }
+
+  .row-between { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 12px; flex-wrap: wrap; }
+  .counter { font-size: 12px; color: var(--muted-fg); }
+  .counter.over { color: var(--destructive); font-weight: 600; }
+
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 12px 22px; border-radius: var(--radius); border: none; cursor: pointer;
+    font-size: 15px; font-weight: 600; font-family: inherit;
+  }
+  .btn-primary { background: var(--primary); color: var(--primary-fg); }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-secondary { background: var(--muted); color: var(--fg); }
+  .btn-ghost { background: none; color: var(--muted-fg); border: 1px solid var(--border); }
+  .btn-danger { background: var(--destructive); color: white; }
+  .btn-sm { padding: 6px 12px; font-size: 13px; }
+  .btn-full { width: 100%; }
+
+  .dropzone {
+    border: 2px dashed hsla(230,40%,30%,0.25); border-radius: 14px; padding: 40px 20px;
+    text-align: center; cursor: pointer; min-height: 220px; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; color: var(--muted-fg); transition: 0.15s;
+  }
+  .dropzone:hover { background: hsla(230,40%,30%,0.04); }
+  .dropzone .icon-circle {
+    width: 56px; height: 56px; border-radius: 50%; background: hsla(230,40%,30%,0.1);
+    display: flex; align-items: center; justify-content: center; margin-bottom: 14px; font-size: 24px;
+  }
+
+  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 40px; text-align: center; }
+  .steps .num {
+    width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center;
+    justify-content: center; margin: 0 auto 10px; font-weight: 700; font-family: "Noto Serif TC", serif;
+  }
+  .steps h3 { font-size: 15px; margin-bottom: 4px; }
+  .steps p { font-size: 13px; color: var(--muted-fg); }
+
+  .banner {
+    padding: 12px 16px; border-radius: var(--radius); font-size: 14px; margin-bottom: 16px;
+    display: flex; align-items: flex-start; gap: 8px;
+  }
+  .banner-error { background: hsla(0,84%,60%,0.1); color: hsl(0 70% 40%); border: 1px solid hsla(0,84%,60%,0.3); }
+  .banner-success { background: hsla(160,84%,33%,0.1); color: hsl(160 70% 25%); border: 1px solid hsla(160,84%,33%,0.3); }
+  .banner-info { background: hsla(230,40%,30%,0.06); color: var(--fg); border: 1px solid var(--border); }
+
+  .key-box { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .key-box input { flex: 1; min-width: 200px; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius); font-family: inherit; }
+  .key-note { font-size: 12px; color: var(--muted-fg); margin-top: 8px; }
+
+  .spinner {
+    width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.4); border-top-color: currentColor;
+    border-radius: 50%; animation: spin 0.7s linear infinite; display: inline-block;
+  }
+  .spinner-dark { border: 2px solid rgba(0,0,0,0.15); border-top-color: var(--primary); }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .gauge-wrap { display: flex; flex-direction: column; align-items: center; }
+  .gauge-score { font-size: 40px; font-weight: 700; font-family: "Noto Serif TC", serif; margin-top: -8px; }
+  .gauge-label { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted-fg); }
+
+  .result-grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
+  @media (min-width: 900px) { .result-grid { grid-template-columns: 300px 1fr; } }
+
+  .section-title { font-size: 13px; font-weight: 700; letter-spacing: 0.04em; color: var(--muted-fg); margin-bottom: 10px; text-transform: uppercase; }
+
+  .orig-text { white-space: pre-wrap; font-size: 17px; line-height: 2; font-family: "Noto Serif TC", serif; }
+  mark { padding: 1px 5px; margin: 0 1px; border-radius: 4px; font-weight: 700; background: transparent; box-decoration-break: clone; }
+
+  .anno-item { border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px; margin-bottom: 10px; }
+  .anno-badge { display: inline-block; font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 999px; color: white; margin-bottom: 6px; }
+  .anno-item p { margin: 0; font-size: 14px; color: var(--fg); }
+
+  .rewrite-box { background: var(--muted); border-radius: var(--radius); padding: 16px; font-size: 15px; white-space: pre-wrap; line-height: 1.8; }
+
+  .hist-item { display: flex; flex-direction: column; gap: 6px; padding: 14px 16px; border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 10px; cursor: pointer; }
+  .hist-item:hover { background: rgba(0,0,0,0.02); }
+  .hist-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+  .hist-snippet { font-size: 14px; color: var(--fg); overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+  .hist-meta { font-size: 12px; color: var(--muted-fg); }
+  .hist-score { font-weight: 700; font-family: "Noto Serif TC", serif; font-size: 18px; }
+  .hist-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+  .hist-tag { font-size: 11px; padding: 2px 8px; border-radius: 999px; background: var(--muted); color: var(--muted-fg); }
+  .empty-state { text-align: center; padding: 60px 20px; color: var(--muted-fg); }
+
+  a.link { color: var(--primary); cursor: pointer; text-decoration: underline; font-size: 14px; }
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+
+<script>
+(function () {
+  "use strict";
+
+  var RHETORIC_CATEGORIES = ["恐懼訴求", "假稀缺", "社會認同操控", "權威借位", "情緒勒索", "誇大療效"];
+  var CATEGORY_COLORS = {
+    "恐懼訴求": "var(--cat-fear)",
+    "假稀缺": "var(--cat-scarcity)",
+    "社會認同操控": "var(--cat-social)",
+    "權威借位": "var(--cat-authority)",
+    "情緒勒索": "var(--cat-emotion)",
+    "誇大療效": "var(--cat-efficacy)"
+  };
+  var MAX_TEXT_LENGTH = 6000;
+  var MAX_IMAGE_MB = 8;
+  var LS_KEY_API = "rx_standalone_api_key";
+  var LS_KEY_HISTORY = "rx_standalone_history";
+
+  var SYSTEM_PROMPT = "你是一位專門分析保健食品與藥品廣告中心理操控話術的專家。\n" +
+"請嚴格只使用以下六種話術分類，不得自創其他分類：\n" +
+"- 恐懼訴求：製造對健康的恐懼感來推動購買\n" +
+"- 假稀缺：人為製造產品稀缺感來施加購買壓力\n" +
+"- 社會認同操控：利用群眾行為來操控消費者決策\n" +
+"- 權威借位：借用或捏造專家／醫師背書\n" +
+"- 情緒勒索：使用內疚感、同情心或家庭壓力\n" +
+"- 誇大療效：誇大或捏造健康功效\n\n" +
+"輸出格式（JSON）：\n" +
+"{\n" +
+'  "annotations": [\n' +
+"    {\n" +
+'      "textSpan": "原文中被標註的片段（需可在原文中逐字找到）",\n' +
+'      "category": "六種話術之一",\n' +
+'      "explanation": "一句白話說明這句話在對讀者做什麼"\n' +
+"    }\n" +
+"  ],\n" +
+'  "credibilityScore": 數字0到100（0=極度操控，100=完全可信），\n' +
+'  "neutralRewrite": "去除話術後的客觀版本文案"\n' +
+"}\n\n" +
+"注意：\n" +
+"1. textSpan 必須是原文中完整的片段，可在原文中搜尋到\n" +
+"2. 若無明顯話術，annotations 可為空陣列\n" +
+"3. credibilityScore 須綜合考量所有話術的嚴重程度\n" +
+"4. neutralRewrite 保留產品的合理資訊，只去除操控性語言\n" +
+"5. 說明請用繁體中文";
+
+  var state = {
+    view: "home",
+    apiKey: localStorage.getItem(LS_KEY_API) || "",
+    showSettings: false,
+    mode: "text",
+    inputType: "text",
+    textContent: "",
+    busy: null,
+    error: null,
+    info: null,
+    currentRecord: null,
+    history: loadHistory()
+  };
+
+  function loadHistory() {
+    try {
+      var raw = localStorage.getItem(LS_KEY_HISTORY);
+      return raw ? JSON.parse(raw) : [];
+    } catch (e) { return []; }
+  }
+  function saveHistory() {
+    localStorage.setItem(LS_KEY_HISTORY, JSON.stringify(state.history.slice(0, 200)));
+  }
+  function escapeHtml(str) {
+    return String(str)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+  function escapeRegExp(s) {
+    return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  }
+  function fmtDate(iso) {
+    var d = new Date(iso);
+    return d.getFullYear() + "/" + String(d.getMonth() + 1).padStart(2, "0") + "/" + String(d.getDate()).padStart(2, "0") +
+      " " + String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0");
+  }
+
+  // ---------- OpenAI calls ----------
+  async function openaiChat(payload) {
+    var res;
+    try {
+      res = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer " + state.apiKey.trim()
+        },
+        body: JSON.stringify(payload)
+      });
+    } catch (networkErr) {
+      throw new Error("無法連線到 OpenAI（網路問題，或瀏覽器封鎖了跨網域請求）");
+    }
+    var json = null;
+    try { json = await res.json(); } catch (e) {}
+    if (!res.ok) {
+      var msg = (json && json.error && json.error.message) || (res.status + " " + res.statusText);
+      throw new Error(msg);
+    }
+    return json;
+  }
+
+  async function runOcr(imageBase64, mimeType) {
+    var json = await openaiChat({
+      model: "gpt-4o-mini",
+      max_tokens: 4096,
+      messages: [{
+        role: "user",
+        content: [
+          { type: "image_url", image_url: { url: "data:" + mimeType + ";base64," + imageBase64 } },
+          { type: "text", text: "請將這張圖片中所有的文字完整抄錄出來，保持原始格式，不要添加任何解釋或評論，只輸出圖片中的文字內容。" }
+        ]
+      }]
+    });
+    return (json.choices && json.choices[0] && json.choices[0].message && json.choices[0].message.content) || "";
+  }
+
+  async function runAnalyze(textContent) {
+    var json = await openaiChat({
+      model: "gpt-4o",
+      max_tokens: 4096,
+      response_format: { type: "json_object" },
+      messages: [
+        { role: "system", content: SYSTEM_PROMPT },
+        { role: "user", content: "請分析以下廣告文案：\n\n" + textContent }
+      ]
+    });
+    var content = (json.choices && json.choices[0] && json.choices[0].message && json.choices[0].message.content) || "{}";
+    var llmData;
+    try { llmData = JSON.parse(content); } catch (e) {
+      throw new Error("分析結果格式錯誤，請再試一次");
+    }
+
+    var annotations = (llmData.annotations || []).filter(function (a) {
+      return a && typeof a.textSpan === "string" && a.textSpan.trim().length > 0 &&
+        textContent.indexOf(a.textSpan) !== -1 &&
+        typeof a.explanation === "string" &&
+        RHETORIC_CATEGORIES.indexOf(a.category) !== -1;
+    });
+
+    var rawScore = Number(llmData.credibilityScore);
+    var credibilityScore = Number.isFinite(rawScore) ? Math.max(0, Math.min(100, rawScore)) : 50;
+
+    var neutralRewrite = (typeof llmData.neutralRewrite === "string" && llmData.neutralRewrite.trim().length > 0)
+      ? llmData.neutralRewrite : textContent;
+
+    return { annotations: annotations, credibilityScore: credibilityScore, neutralRewrite: neutralRewrite };
+  }
+
+  // ---------- render ----------
+  function render() {
+    var app = document.getElementById("app");
+    app.innerHTML = renderTopbar() + (state.showSettings ? "" : renderBanners()) +
+      (state.view === "home" ? renderHome() :
+       state.view === "result" ? renderResult() :
+       renderHistory()) +
+      (state.showSettings ? renderSettingsModal() : "");
+    bindEvents();
+  }
+
+  function renderTopbar() {
+    var hasKey = !!state.apiKey;
+    return '<div class="topbar">' +
+      '<div class="brand" data-action="nav-home">話術透視鏡<small>獨立版・僅存於本機瀏覽器</small></div>' +
+      '<div class="nav-links">' +
+      '<button class="nav-btn ' + (state.view === "home" ? "active" : "") + '" data-action="nav-home">分析</button>' +
+      '<button class="nav-btn ' + (state.view === "history" ? "active" : "") + '" data-action="nav-history">歷史紀錄（' + state.history.length + '）</button>' +
+      '<button class="icon-btn" data-action="toggle-settings" title="' + (hasKey ? "已設定 API Key" : "尚未設定 API Key") + '">⚙️<span class="dot ' + (hasKey ? "ok" : "") + '"></span></button>' +
+      '</div></div>';
+  }
+
+  function renderBanners() {
+    var html = "";
+    if (state.error) {
+      html += '<div class="banner banner-error"><span>⚠️</span><span>' + escapeHtml(state.error) + '</span></div>';
+    }
+    if (state.info) {
+      html += '<div class="banner banner-success"><span>✅</span><span>' + escapeHtml(state.info) + '</span></div>';
+    }
+    return html;
+  }
+
+  function renderSettingsModal() {
+    var hasKey = !!state.apiKey;
+    return '<div class="modal-overlay">' +
+      '<div class="modal-box">' +
+      '<div class="modal-top"><h3>OpenAI API Key</h3>' +
+      '<button class="modal-close" data-action="close-settings">✕</button></div>' +
+      (state.error ? '<div class="banner banner-error"><span>⚠️</span><span>' + escapeHtml(state.error) + '</span></div>' : "") +
+      (state.info ? '<div class="banner banner-success"><span>✅</span><span>' + escapeHtml(state.info) + '</span></div>' : "") +
+      '<div class="key-box">' +
+      '<input id="api-key-input" type="password" placeholder="sk-..." value="' + escapeHtml(state.apiKey) + '" />' +
+      '<button class="btn btn-primary btn-sm" data-action="save-key">儲存</button>' +
+      (hasKey ? '<button class="btn btn-ghost btn-sm" data-action="clear-key">清除金鑰</button>' : "") +
+      '</div>' +
+      '<p class="key-note">金鑰只會存在你「這個瀏覽器」的本機儲存空間（localStorage），頁面會直接從你的瀏覽器呼叫 OpenAI API，不經過任何中介伺服器，也不會傳給我。換一台電腦、換瀏覽器、或清除瀏覽資料都需要重新輸入。請勿把這個檔案分享給別人時附上你的金鑰。</p>' +
+      '</div></div>';
+  }
+
+  function renderHome() {
+    var overLimit = state.textContent.length > MAX_TEXT_LENGTH;
+    var analyzing = state.busy === "analyze";
+    var ocring = state.busy === "ocr";
+
+    var html = "";
+    if (!state.apiKey) {
+      html += '<div class="banner banner-info">🔑 尚未設定 OpenAI API Key，請先點右上角 <strong>⚙️</strong> 設定，才能開始分析。</div>';
+    }
+    html += '<div class="hero"><h1>揭開話術的面紗</h1>' +
+      '<p>將可疑的健康產品廣告文字貼上，或是上傳廣告圖片。話術透視鏡會為您標示其中的行銷陷阱與操縱手法。</p></div>';
+
+    html += '<div class="card">';
+    html += '<div class="tabs">' +
+      '<button class="tab-btn ' + (state.mode === "text" ? "active" : "") + '" data-action="switch-tab" data-mode="text">📝 貼上文字</button>' +
+      '<button class="tab-btn ' + (state.mode === "image" ? "active" : "") + '" data-action="switch-tab" data-mode="image">🖼️ 上傳圖片</button>' +
+      '</div>';
+    html += '<div class="card-pad">';
+
+    if (state.mode === "text") {
+      html += '<textarea id="text-input" placeholder="請輸入或貼上廣告文字內容...">' + escapeHtml(state.textContent) + '</textarea>';
+      html += '<div class="row-between">' +
+        '<span class="counter ' + (overLimit ? "over" : "") + '" id="char-counter">' + state.textContent.length + ' / ' + MAX_TEXT_LENGTH + ' 字</span>' +
+        '<button class="btn btn-primary" id="analyze-btn" data-action="analyze" ' +
+          (analyzing || !state.textContent.trim() || overLimit ? "disabled" : "") + '>' +
+          (analyzing ? '<span class="spinner"></span> 分析中...' : '開始透視分析 →') +
+        '</button></div>';
+    } else {
+      html += '<div class="dropzone" data-action="pick-file">' +
+        '<input type="file" id="file-input" accept="image/*" style="display:none" />' +
+        (ocring
+          ? '<div class="spinner spinner-dark" style="width:32px;height:32px;margin-bottom:14px;"></div><p style="font-weight:700;color:var(--fg);">正在辨識圖片文字...</p><p style="font-size:13px;">這可能需要幾秒鐘的時間</p>'
+          : '<div class="icon-circle">⬆️</div><p style="font-weight:700;color:var(--fg);font-size:16px;">點擊選擇圖片</p><p style="font-size:13px;">支援 JPG, PNG, WEBP 等常見格式（8MB 以下）</p>') +
+        '</div>';
+    }
+    html += '</div></div>';
+
+    html += '<div class="steps">' +
+      step("1", "恐懼訴求", "輸入廣告內容", "上傳長輩群組傳來的保健食品圖片，或直接貼上文案。") +
+      step("2", "假稀缺", "AI 智慧分析", "系統會自動辨識六大常見的操縱性話術與行銷陷阱。") +
+      step("3", "社會認同操控", "拆解與還原", "獲得客觀的信任度評分，並看見去除包裝後的事實。") +
+      '</div>';
+    return html;
+  }
+
+  function step(n, category, title, desc) {
+    var color = CATEGORY_COLORS[category];
+    return '<div><div class="num" style="background:color-mix(in srgb, ' + color + ' 15%, transparent); color:' + color + ';">' + n + '</div>' +
+      '<h3>' + title + '</h3><p>' + desc + '</p></div>';
+  }
+
+  function gaugeSvg(score) {
+    var radius = 60, circumference = radius * Math.PI;
+    var dashoffset = circumference - (score / 100) * circumference;
+    var color = "var(--emerald)", label = "值得信賴";
+    if (score < 40) { color = "var(--destructive)"; label = "高度操縱"; }
+    else if (score < 70) { color = "var(--amber)"; label = "需要留意"; }
+    return '<div class="gauge-wrap">' +
+      '<svg width="180" height="90" viewBox="0 0 140 70" style="overflow:visible;">' +
+      '<path d="M 10 70 A 60 60 0 0 1 130 70" stroke="var(--border)" fill="none" stroke-width="12" stroke-linecap="round"/>' +
+      '<path d="M 10 70 A 60 60 0 0 1 130 70" stroke="' + color + '" fill="none" stroke-width="12" stroke-linecap="round" ' +
+        'stroke-dasharray="' + circumference + '" stroke-dashoffset="' + dashoffset + '" style="transition: stroke-dashoffset 1s ease-out;"/>' +
+      '</svg>' +
+      '<div class="gauge-score" style="color:' + color + ';">' + Math.round(score) + '</div>' +
+      '<div class="gauge-label">' + label + '</div>' +
+      '</div>';
+  }
+
+  function highlightedTextHtml(text, annotations) {
+    if (!annotations || annotations.length === 0) {
+      return '<p class="orig-text">' + escapeHtml(text) + '</p>';
+    }
+    var sorted = annotations.slice().sort(function (a, b) { return b.textSpan.length - a.textSpan.length; });
+    var pattern = new RegExp("(" + sorted.map(function (a) { return escapeRegExp(a.textSpan); }).join("|") + ")", "g");
+    var parts = text.split(pattern);
+    var out = '<p class="orig-text">';
+    parts.forEach(function (part, i) {
+      if (i % 2 === 0) {
+        out += escapeHtml(part);
+      } else {
+        var match = sorted.find(function (a) { return a.textSpan === part; });
+        var color = match ? CATEGORY_COLORS[match.category] : "var(--muted)";
+        out += '<mark style="background:color-mix(in srgb, ' + color + ' 18%, transparent); border-bottom:2px solid ' + color + '; color:' + color + ';">' + escapeHtml(part) + '</mark>';
+      }
+    });
+    out += '</p>';
+    return out;
+  }
+
+  function renderResult() {
+    var r = state.currentRecord;
+    if (!r) return '<div class="empty-state">找不到這筆分析紀錄</div>';
+
+    var html = '<button class="btn btn-ghost btn-sm" data-action="nav-home" style="margin-bottom:16px;">← 回到分析首頁</button>';
+    html += '<div class="result-grid">';
+
+    html += '<div>' +
+      '<div class="card card-pad" style="text-align:center;">' + gaugeSvg(r.credibilityScore) + '</div>' +
+      '<div class="card card-pad" style="margin-top:16px;">' +
+      '<div class="section-title">話術拆解清單（' + r.annotations.length + '）</div>';
+    if (r.annotations.length === 0) {
+      html += '<p style="font-size:14px;color:var(--muted-fg);">沒有偵測到明顯的操縱性話術。</p>';
+    } else {
+      r.annotations.forEach(function (a) {
+        var color = CATEGORY_COLORS[a.category];
+        html += '<div class="anno-item"><span class="anno-badge" style="background:' + color + ';">' + escapeHtml(a.category) + '</span>' +
+          '<p>' + escapeHtml(a.explanation) + '</p></div>';
+      });
+    }
+    html += '</div></div>';
+
+    html += '<div>' +
+      '<div class="card card-pad"><div class="section-title">原文分析</div>' + highlightedTextHtml(r.originalText, r.annotations) + '</div>' +
+      '<div class="card card-pad" style="margin-top:16px;"><div class="section-title">中性重寫版</div>' +
+      '<div class="rewrite-box">' + escapeHtml(r.neutralRewrite) + '</div></div>' +
+      '</div>';
+
+    html += '</div>';
+    return html;
+  }
+
+  function renderHistory() {
+    if (state.history.length === 0) {
+      return '<div class="empty-state"><p>還沒有任何分析紀錄。</p>' +
+        '<button class="btn btn-primary" data-action="nav-home" style="margin-top:12px;">開始第一次分析</button></div>';
+    }
+    var html = '<div class="row-between" style="margin-bottom:16px;">' +
+      '<div class="section-title" style="margin:0;">共 ' + state.history.length + ' 筆紀錄（僅存於本機瀏覽器）</div>' +
+      '<button class="btn btn-ghost btn-sm" data-action="clear-history">清除全部紀錄</button></div>';
+    state.history.forEach(function (r) {
+      var scoreColor = r.credibilityScore < 40 ? "var(--destructive)" : (r.credibilityScore < 70 ? "var(--amber)" : "var(--emerald)");
+      var cats = Array.from(new Set(r.annotations.map(function (a) { return a.category; })));
+      html += '<div class="hist-item" data-action="view-record" data-id="' + r.id + '">' +
+        '<div class="hist-top"><span class="hist-meta">' + fmtDate(r.createdAt) + ' · ' + (r.inputType === "image" ? "圖片" : "文字") + '</span>' +
+        '<span class="hist-score" style="color:' + scoreColor + ';">' + Math.round(r.credibilityScore) + '</span></div>' +
+        '<div class="hist-snippet">' + escapeHtml(r.originalText) + '</div>' +
+        '<div class="hist-tags">' + cats.map(function (c) {
+          return '<span class="hist-tag" style="color:' + CATEGORY_COLORS[c] + ';">' + escapeHtml(c) + '</span>';
+        }).join("") + '</div>' +
+        '</div>';
+    });
+    return html;
+  }
+
+  // ---------- events ----------
+  function bindEvents() {
+    var app = document.getElementById("app");
+
+    var textInput = document.getElementById("text-input");
+    if (textInput) {
+      textInput.addEventListener("input", function () {
+        state.textContent = textInput.value;
+        if (state.inputType === "image" && textInput.value === "") state.inputType = "text";
+        var counter = document.getElementById("char-counter");
+        if (counter) {
+          counter.textContent = state.textContent.length + " / " + MAX_TEXT_LENGTH + " 字";
+          counter.className = "counter" + (state.textContent.length > MAX_TEXT_LENGTH ? " over" : "");
+        }
+        var btn = document.getElementById("analyze-btn");
+        if (btn) btn.disabled = !state.textContent.trim() || state.textContent.length > MAX_TEXT_LENGTH || state.busy === "analyze";
+      });
+    }
+
+    var fileInput = document.getElementById("file-input");
+    if (fileInput) {
+      fileInput.addEventListener("change", handleFileChange);
+    }
+
+    var apiKeyInput = document.getElementById("api-key-input");
+    if (apiKeyInput) {
+      apiKeyInput.addEventListener("keydown", function (e) {
+        if (e.key === "Enter") { e.preventDefault(); saveKey(apiKeyInput.value); }
+      });
+    }
+
+    app.onclick = function (e) {
+      // clicking the dark backdrop itself (not its content) closes the modal
+      if (e.target.classList.contains("modal-overlay")) {
+        state.showSettings = false; render(); return;
+      }
+
+      var el = e.target.closest("[data-action]");
+      if (!el) return;
+      var action = el.getAttribute("data-action");
+
+      if (action === "nav-home") { state.view = "home"; state.error = null; state.info = null; render(); }
+      else if (action === "nav-history") { state.view = "history"; state.error = null; render(); }
+      else if (action === "toggle-settings") { state.showSettings = !state.showSettings; state.info = null; render(); }
+      else if (action === "close-settings") { state.showSettings = false; render(); }
+      else if (action === "switch-tab") { state.mode = el.getAttribute("data-mode"); state.error = null; render(); }
+      else if (action === "pick-file") { var fi = document.getElementById("file-input"); if (fi) fi.click(); }
+      else if (action === "save-key") {
+        var input = document.getElementById("api-key-input");
+        saveKey(input ? input.value : "");
+      }
+      else if (action === "clear-key") {
+        state.apiKey = ""; localStorage.removeItem(LS_KEY_API); state.info = "已清除金鑰"; render();
+      }
+      else if (action === "analyze") { doAnalyze(); }
+      else if (action === "view-record") {
+        var id = el.getAttribute("data-id");
+        var rec = state.history.find(function (r) { return String(r.id) === id; });
+        if (rec) { state.currentRecord = rec; state.view = "result"; render(); }
+      }
+      else if (action === "clear-history") {
+        if (confirm("確定要清除全部本機分析紀錄嗎？此動作無法復原。")) {
+          state.history = []; saveHistory(); render();
+        }
+      }
+    };
+  }
+
+  function saveKey(value) {
+    state.apiKey = (value || "").trim();
+    localStorage.setItem(LS_KEY_API, state.apiKey);
+    state.info = "金鑰已儲存在本機瀏覽器";
+    state.error = null;
+    render();
+  }
+
+  function handleFileChange(e) {
+    var file = e.target.files && e.target.files[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      state.error = "請選擇圖片檔案（JPG、PNG、WEBP 等）";
+      render();
+      return;
+    }
+    if (file.size > MAX_IMAGE_MB * 1024 * 1024) {
+      state.error = "圖片檔案過大，請上傳 " + MAX_IMAGE_MB + "MB 以下的圖片";
+      render();
+      return;
+    }
+    if (!state.apiKey) {
+      state.error = "請先設定你的 OpenAI API Key";
+      state.showSettings = true;
+      render();
+      return;
+    }
+
+    var reader = new FileReader();
+    reader.onload = function (event) {
+      var result = event.target.result;
+      var parts = result.split(",");
+      if (parts.length !== 2) return;
+      var mimeMatch = parts[0].match(/:(.*?);/);
+      var mimeType = mimeMatch ? mimeMatch[1] : file.type;
+      var imageBase64 = parts[1];
+
+      state.busy = "ocr"; state.error = null; state.info = null; render();
+
+      runOcr(imageBase64, mimeType).then(function (ocrText) {
+        var extracted = (ocrText || "").trim();
+        state.busy = null;
+        if (!extracted) {
+          state.error = "沒有在圖片中辨識到文字，請換一張更清楚的截圖再試一次";
+          render();
+          return;
+        }
+        state.textContent = extracted;
+        state.inputType = "image";
+        state.mode = "text";
+        state.info = "文字萃取成功，請確認或修改內容";
+        render();
+      }).catch(function (err) {
+        state.busy = null;
+        state.error = "影像處理失敗：" + err.message;
+        render();
+      });
+    };
+    reader.onerror = function () {
+      state.error = "圖片讀取失敗，請重試";
+      render();
+    };
+    reader.readAsDataURL(file);
+    e.target.value = "";
+  }
+
+  function doAnalyze() {
+    if (!state.apiKey) {
+      state.error = "請先設定你的 OpenAI API Key";
+      state.showSettings = true;
+      render();
+      return;
+    }
+    var text = state.textContent.trim();
+    if (!text) { state.error = "請輸入要分析的文字"; render(); return; }
+    if (text.length > MAX_TEXT_LENGTH) { state.error = "文字內容過長，請控制在 " + MAX_TEXT_LENGTH + " 字以內"; render(); return; }
+
+    state.busy = "analyze"; state.error = null; state.info = null; render();
+
+    runAnalyze(text).then(function (result) {
+      var record = {
+        id: (crypto.randomUUID ? crypto.randomUUID() : String(Date.now())),
+        createdAt: new Date().toISOString(),
+        inputType: state.inputType,
+        originalText: text,
+        annotations: result.annotations,
+        credibilityScore: result.credibilityScore,
+        neutralRewrite: result.neutralRewrite
+      };
+      state.history.unshift(record);
+      saveHistory();
+      state.busy = null;
+      state.currentRecord = record;
+      state.view = "result";
+      state.textContent = "";
+      state.inputType = "text";
+      render();
+    }).catch(function (err) {
+      state.busy = null;
+      state.error = "分析失敗：" + err.message;
+      render();
+    });
+  }
+
+  render();
+})();
+</script>
+</body>
+</html>
