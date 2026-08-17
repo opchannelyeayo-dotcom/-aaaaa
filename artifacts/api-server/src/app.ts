@@ -3,6 +3,7 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import pinoHttp from "pino-http";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import router from "./routes";
 import { logger } from "./lib/logger";
 
@@ -54,7 +55,10 @@ app.use("/api", (_req, res) => {
 // process also serves both Vite builds, keeping /api, /admin and the public
 // site on the same origin just like Replit's development artifact router.
 if (process.env.NODE_ENV === "production") {
-  const rootDir = process.cwd();
+  // pnpm runs filtered package scripts with the package directory as cwd.
+  // Resolve from this module instead so both `pnpm start` and Replit's direct
+  // production command find the workspace-level frontend builds reliably.
+  const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../..");
   const publicDir = path.join(rootDir, "artifacts/rhetoric-xray/dist/public");
   const adminDir = path.join(rootDir, "artifacts/admin-console/dist/public");
 
